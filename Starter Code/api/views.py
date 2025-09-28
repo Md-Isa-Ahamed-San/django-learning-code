@@ -17,6 +17,7 @@ from api.serializers import (  # import serializer for Product model
 )
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 # -------------------------------
 # FUNCTION BASED VIEWS (FBV)
 # -------------------------------
@@ -107,22 +108,34 @@ class UserOrderListAPIView(generics.ListAPIView):
     # queryset = Order.objects.all()
     queryset = Order.objects.prefetch_related("items__product")
     # queryset = Product.objects.filter(stock__gt=0)  # only products in stock. this is for only generic view
-    serializer_class = OrderSerializer
+    serializer_class = OrderSerializer 
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(user = self.request.user)
     
 
-@api_view(['GET'])
-def product_info(request):
-    products = Product.objects.all()
-    serializer = ProductInfoSerializer({
-        'products': products,
-        'count': len(products),
-        'max_price': products.aggregate(max_price = Max("price"))["max_price"]
 
-    })
-    return Response(serializer.data)
+class ProductInfoAPIView(APIView):
+    def get(self, request):
+        products = Product.objects.all()
+        serializer = ProductInfoSerializer({
+            'products': products,
+            'count': len(products),
+            'max_price': products.aggregate(max_price = Max("price"))["max_price"]
+
+        })
+        return Response(serializer.data)
+
+# @api_view(['GET'])
+# def product_info(request):
+#     products = Product.objects.all()
+#     serializer = ProductInfoSerializer({
+#         'products': products,
+#         'count': len(products),
+#         'max_price': products.aggregate(max_price = Max("price"))["max_price"]
+
+#     })
+#     return Response(serializer.data)
 
 
 # -------------------------------
