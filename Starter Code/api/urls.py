@@ -10,6 +10,6 @@ urlpatterns = [
     path('products/<int:product_id>',views.ProductDetailAPIView.as_view()),
     # path('orders/',views.order_list),
     path('orders/',views.OrderListAPIView.as_view()),
-    path('user-orders/',views.UserOrderListAPIView.as_view()),
+    path('user-orders/',views.UserOrderListAPIView.as_view(),name="user-orders"),
    path('silk/', include('silk.urls'))
 ]
