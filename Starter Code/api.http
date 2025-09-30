@@ -1,0 +1,35 @@
+GET http://localhost:8000/products/ HTTP/1.1
+
+###
+
+POST http://localhost:8000/products/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU5MjQzNzE0LCJpYXQiOjE3NTkyNDM0MTQsImp0aSI6IjhhMDg1MDNmYzFkZjQ1NjJiYmQyNmM3NDlmNzQ5NjRhIiwidXNlcl9pZCI6IjMifQ.yzXGfJwkUn9LHYCapzifYNdOWe5or--31kJ4pi2GEoU
+
+{
+	"name": "Pizza",
+	"price": 350.00,
+	"stock": 6,
+	"description": "An amazing new Spicy tasty pizza"    
+}
+
+### 
+POST http://localhost:8000/api/token/ HTTP/1.1
+Content-Type: application/json
+
+{
+	"username": "isa-ahamed-1",
+	"password": "IAAAAAAA"
+}
+
+###
+POST http://localhost:8000/api/token/refresh/ HTTP/1.1
+Content-Type: application/json
+
+{
+	"refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1OTMyNzA0NSwiaWF0IjoxNzU5MjQwNjQ1LCJqdGkiOiJkMGU1YzUwNWNmOTk0NjQ1OWE1NjBhYjM3ZjY2MDViMCIsInVzZXJfaWQiOiIyIn0.Zk2SZTAMVv8eUKuXIBy41gsfv7Z1UIg5Hd_tQdvBHKU"
+}
+
+###
+GET http://localhost:8000/user-orders/ HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU5MjQ0ODY3LCJpYXQiOjE3NTkyNDQ1NjcsImp0aSI6IjA5NTViMTM1OWQ2OTQ1MTFhYmE0ZWI0NGU4ZTU2YzBiIiwidXNlcl9pZCI6IjIifQ.qR6Ew7po_NY1-5nEV0YkHbJoddSZLbdU02btBEHp4rc
