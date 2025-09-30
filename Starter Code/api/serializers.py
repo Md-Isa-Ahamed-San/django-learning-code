@@ -4,7 +4,7 @@ from .models import Product, Order, OrderItem
 
 # note: Using ModelSerializer because it auto-generates fields 
 #       based on the model, reducing boilerplate code.
-class ProductSerializer(serializers.ModelSerializer):
+class ProductReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         #! important: Always define 'fields' explicitly for clarity and security. 
@@ -25,6 +25,10 @@ class ProductSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Price must be greater than zero.")
         return value
 
+class ProductWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ("name", "description", "price", "stock")  # no id
 
 class OrderItemSerializer(serializers.ModelSerializer):
     #! important: Instead of serializing the whole product object (nested serializer),
@@ -86,7 +90,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class ProductInfoSerializer(serializers.Serializer):
-    products = ProductSerializer(many=True)
+    products = ProductReadSerializer(many=True)
     count = serializers.IntegerField()
     max_price = serializers.FloatField()
 

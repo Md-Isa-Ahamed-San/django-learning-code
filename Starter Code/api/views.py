@@ -12,11 +12,12 @@ from rest_framework.response import (
 from api.models import Order, Product  # import Product model
 from api.serializers import (  # import serializer for Product model
     OrderSerializer,
-    ProductSerializer,
-    ProductInfoSerializer
+    ProductReadSerializer,
+    ProductWriteSerializer,
+    ProductInfoSerializer,
 )
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import (IsAuthenticated,IsAdminUser,AllowAny)
 from rest_framework.views import APIView
 # -------------------------------
 # FUNCTION BASED VIEWS (FBV)
@@ -34,22 +35,69 @@ from rest_framework.views import APIView
 
 #     # Serialize data → convert queryset (Python objects) to JSON
 #     # "many=True" because we’re serializing multiple products
-#     serializer = ProductSerializer(products, many=True)
+#     serializer = ProductReadSerializer(products, many=True)
 
 #     # DRF Response → automatically renders JSON + adds correct content-type headers
 #     return Response(serializer.data)
 
 
-class ProductListAPIView(generics.ListAPIView):
+# class ProductListAPIView(generics.ListAPIView):
+#     queryset = Product.objects.all()
+#     # queryset = Product.objects.filter(stock__gt=0)  # only products in stock. this is for only generic view
+#     serializer_class = ProductReadSerializer
+
+class ProductListCreateAPIView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     # queryset = Product.objects.filter(stock__gt=0)  # only products in stock. this is for only generic view
-    serializer_class = ProductSerializer
-    
+    serializer_class = ProductReadSerializer
+
+    def get_permissions(self):
+        self.permission_classes = [AllowAny]
+        if self.request.method == "POST":
+            self.permission_classes = [IsAdminUser]
+        return super().get_permissions()
+
+
+class ProductCreateAPIView(generics.CreateAPIView):
+    model = Product
+    # queryset = Product.objects.filter(stock__gt=0)  # only products in stock. this is for only generic view
+    serializer_class = ProductWriteSerializer
+
+    def create(self, request, *args, **kwargs):
+        print("📥 Incoming raw request data:", request.data)
+
+        response = super().create(request, *args, **kwargs)
+
+        print("📤 Saved response data:", response.data)
+        return response
+
+
+# POST request
+#    ↓
+# CreateAPIView.post()
+#    ↓
+# self.create(request, ...)
+#    ↓
+# serializer.is_valid()
+#    ↓
+# self.perform_create(serializer)
+#    ↓
+# serializer.save()   <-- actual DB insert
+#    ↓
+# return Response(data)
+
+
+# If I don’t use create or perform_create and only write serializer_class and model, how is POST still happening?
+# Because:
+# post() → create() → perform_create() → serializer.save() are already implemented in DRF’s base classes.
+
 
 class ProductDetailAPIView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    lookup_url_kwarg = 'product_id'  # default is 'pk', change if URL uses different name
+    serializer_class = ProductReadSerializer
+    lookup_url_kwarg = (
+        "product_id"  # default is 'pk', change if URL uses different name
+    )
 
 
 # @api_view(["GET"])
@@ -58,8 +106,7 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
 #     product = get_object_or_404(Product, pk=pk)
 
 #     # Serialize single product (no need for many=True since it's just one object)
-#     serializer = ProductSerializer(product)
-
+#     serializer = ProductReadSerializer(product)
 #     return Response(serializer.data)
 
 
@@ -71,11 +118,13 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
 #     serializer = OrderSerializer(orders, many=True)
 #     return Response(serializer.data)
 
+
 class OrderListAPIView(generics.ListAPIView):
     # queryset = Order.objects.all()
     queryset = Order.objects.prefetch_related("items__product")
     # queryset = Product.objects.filter(stock__gt=0)  # only products in stock. this is for only generic view
     serializer_class = OrderSerializer
+
 
 # Without optimization (19 queries total):
 # [Orders] ---- 1 query
@@ -103,28 +152,31 @@ class OrderListAPIView(generics.ListAPIView):
 # [All Products] ---- 1 query
 # = 3 🎯
 
+
 class UserOrderListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     # queryset = Order.objects.all()
     queryset = Order.objects.prefetch_related("items__product")
     # queryset = Product.objects.filter(stock__gt=0)  # only products in stock. this is for only generic view
-    serializer_class = OrderSerializer 
+    serializer_class = OrderSerializer
+
     def get_queryset(self):
         qs = super().get_queryset()
-        return qs.filter(user = self.request.user)
-    
+        return qs.filter(user=self.request.user)
 
 
 class ProductInfoAPIView(APIView):
     def get(self, request):
         products = Product.objects.all()
-        serializer = ProductInfoSerializer({
-            'products': products,
-            'count': len(products),
-            'max_price': products.aggregate(max_price = Max("price"))["max_price"]
-
-        })
+        serializer = ProductInfoSerializer(
+            {
+                "products": products,
+                "count": len(products),
+                "max_price": products.aggregate(max_price=Max("price"))["max_price"],
+            }
+        )
         return Response(serializer.data)
+
 
 # @api_view(['GET'])
 # def product_info(request):
