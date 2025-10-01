@@ -92,12 +92,24 @@ class ProductCreateAPIView(generics.CreateAPIView):
 # post() → create() → perform_create() → serializer.save() are already implemented in DRF’s base classes.
 
 
-class ProductDetailAPIView(generics.RetrieveAPIView):
+# class ProductDetailAPIView(generics.RetrieveAPIView):
+#     queryset = Product.objects.all()
+#     serializer_class = ProductReadSerializer
+#     lookup_url_kwarg = (
+#         "product_id"  # default is 'pk', change if URL uses different name
+#     )
+
+class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductReadSerializer
     lookup_url_kwarg = (
         "product_id"  # default is 'pk', change if URL uses different name
     )
+    def get_permissions(self):
+        self.permission_classes = [AllowAny]
+        if self.request.method in ["PUT", "PATCH", "DELETE"]:
+            self.permission_classes = [IsAdminUser]
+        return super().get_permissions()    
 
 
 # @api_view(["GET"])
